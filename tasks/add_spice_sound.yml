@@ -1,0 +1,11 @@
+---
+- name: Add Spice compatible audio device
+  community.general.proxmox_kvm:
+    api_user: "{{ hostvars['localhost']['api_user'] }}"
+    api_password: "{{ hostvars['localhost']['api_password'] }}"
+    api_host: "{{ hostvars['localhost']['api_host'] }}"
+    node: "{{ hostvars['localhost']['node_name'] }}"
+    vmid: "{{ proxmox_vmid }}"
+    audio: '{"audio0":"device=ich9-intel-hda,driver=spice"}'
+    update: true
+  delegate_to: localhost

@@ -1,0 +1,53 @@
+---
+- name: Check if the "{{ ludus_spice_windows_guest_tools_name }}" executable exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_guest_tools_name }}"
+  register: file_guest_tools_before
+  when: ansible_os_family == "Windows"
+
+- name: Caching Spice guest tools (Windows)
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_download_file_name: "{{ ludus_spice_windows_guest_tools_name }}"
+    ludus_download_file_url: "{{ ludus_spice_windows_guest_tools_path }}"
+    ludus_download_file_host_path: "{{ ludus_windows_directory }}\\spice"
+  register: download_guest_tools
+  when: ansible_os_family == "Windows" and not file_guest_tools_before.stat.exists
+
+- name: Debug
+  ansible.builtin.debug:
+    var: download_guest_tools
+
+- name: Check if the "{{ ludus_spice_windows_guest_tools_name }}" executable exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_guest_tools_name }}"
+  register: file_guest_tools_after
+  when: ansible_os_family == "Windows"
+
+- name: Check for successfull download Spice guest tools (Windows)
+  ansible.builtin.fail:
+    msg: The file "{{ ludus_spice_windows_guest_tools_name }}" was not downloaded.
+  when: not file_guest_tools_after.stat.exists
+
+- name: Install Spice agent silently as System
+  ansible.windows.win_package:
+    path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_guest_tools_name }}"
+    product_id: "{{ ludus_spice_windows_guest_tools_name }}"
+    arguments: /S
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: System
+    ansible_become_flags: logon_type=batch
+  when: file_guest_tools_after.stat.exists
+
+- name: Setup the VM display to qxl
+  community.general.proxmox_kvm:
+    api_user: "{{ hostvars['localhost']['api_user'] }}"
+    api_password: "{{ hostvars['localhost']['api_password'] }}"
+    api_host: "{{ hostvars['localhost']['api_host'] }}"
+    node: "{{ hostvars['localhost']['node_name'] }}"
+    vmid: "{{ proxmox_vmid }}"
+    vga: "qxl"
+    update: true
+  delegate_to: localhost

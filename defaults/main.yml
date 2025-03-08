@@ -1,0 +1,18 @@
+---
+role_name: "ludus_install_spice"
+ludus_windows_directory: "C:\\ludus"
+ludus_spice_windows_guest_tools_name: "spice-guest-tools-latest.exe"
+ludus_spice_windows_guest_tools_path: "https://www.spice-space.org/download/windows/spice-guest-tools/spice-guest-tools-latest.exe"
+ludus_spice_windows_usbredirect_name: "usbredirect-x64-0.14.0.msi"
+ludus_spice_windows_usbredirect_path: "https://www.spice-space.org/download/windows/usbredirect/usbredirect-x64-0.14.0.msi"
+ludus_spice_windows_foldersharing_name: "spice-webdavd-x64-latest.msi"
+ludus_spice_windows_foldersharing_path: "https://www.spice-space.org/download/windows/spice-webdavd/spice-webdavd-x64-latest.msi"
+ludus_spice_windows_foldersharing_hash: "sha256:f278c17fca6b129eb5c9a46b8634af2ecfaf3bca8903eb9a5c7874f0e45f82b9"
+
+ludus_domain: "{{ (ludus | selectattr('vm_name', 'match', inventory_hostname))[0].domain.fqdn.split('.')[0] }}"
+ludus_domain_ad_domain_admin: "{{ ludus_domain }}\\{{ defaults.ad_domain_admin }}"
+ludus_domain_ad_domain_password: "{{ defaults.ad_domain_admin_password }}"
+
+spice_usb: false
+spice_share: false
+#spice_sound: false

@@ -1,0 +1,43 @@
+---
+- name: Check if the "{{ ludus_spice_windows_foldersharing_name }}" executable exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_foldersharing_name }}"
+  register: file_webdav_before
+  when: ansible_os_family == "Windows"
+
+- name: Caching Spice webdav plugin (Windows)
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_download_file_name: "{{ ludus_spice_windows_foldersharing_name }}"
+    ludus_download_file_url: "{{ ludus_spice_windows_foldersharing_path }}"
+    ludus_download_file_host_path: "{{ ludus_windows_directory }}\\spice"
+    ludus_download_file_checksum: "{{ ludus_spice_windows_foldersharing_hash }}"
+  register: download_usb_redirect
+  when: ansible_os_family == "Windows" and not file_webdav_before.stat.exists
+
+- name: Debug
+  ansible.builtin.debug:
+    var: download_usb_redirect
+
+- name: Check if the "{{ ludus_spice_windows_foldersharing_name }}" executable exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_foldersharing_name }}"
+  register: file_webdav_after
+  when: ansible_os_family == "Windows"
+
+- name: Check for successfull download Spice webdav plugin (Windows)
+  ansible.builtin.fail:
+    msg: The file "{{ ludus_spice_windows_foldersharing_name }}" was not downloaded.
+  when: not file_webdav_after.stat.exists
+
+- name: Install Spice webdav plugin silently
+  ansible.windows.win_package:
+    path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_foldersharing_name }}"
+    product_id: foldersharing
+    arguments: /quiet
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: "{{ ludus_domain_ad_domain_admin }}"
+    ansible_become_password: "{{ ludus_domain_ad_domain_password }}"
+  when: file_webdav_after.stat.exists

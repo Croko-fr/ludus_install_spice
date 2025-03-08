@@ -1,0 +1,53 @@
+---
+- name: Check if the "{{ ludus_spice_windows_usbredirect_name }}" executable exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_usbredirect_name }}"
+  register: file_usb_redirect_before
+  when: ansible_os_family == "Windows"
+
+- name: Caching Spice usb redirect plugin (Windows)
+  ansible.builtin.include_tasks:
+    file: download_file.yml
+  vars:
+    ludus_download_file_name: "{{ ludus_spice_windows_usbredirect_name }}"
+    ludus_download_file_url: "{{ ludus_spice_windows_usbredirect_path }}"
+    ludus_download_file_host_path: "{{ ludus_windows_directory }}\\spice"
+  register: download_usb_redirect
+  when: ansible_os_family == "Windows" and not file_usb_redirect_before.stat.exists
+
+- name: Debug
+  ansible.builtin.debug:
+    var: download_usb_redirect
+
+- name: Checking if "{{ ludus_spice_windows_usbredirect_name }}" file exists
+  win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_usbredirect_name }}"
+  register: file_usb_redirect_after
+  when: ansible_os_family == "Windows"
+
+- name: Checking Spice usb redirect plugin download (Windows)
+  ansible.builtin.fail:
+    msg: The file "{{ludus_spice_windows_usbredirect_name }}" was not downloaded.
+  when: not file_usb_redirect_after.stat.exists
+
+- name: Install Spice usb redirect plugin as System
+  ansible.windows.win_package:
+    path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_usbredirect_name }}"
+    product_id: usb_redirect
+    arguments: /quiet
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: "{{ ludus_domain_ad_domain_admin }}"
+    ansible_become_password: "{{ ludus_domain_ad_domain_password }}"
+  when: file_usb_redirect_after.stat.exists
+
+- name: Add Spice compatible usb device
+  community.general.proxmox_kvm:
+    api_user: "{{ hostvars['localhost']['api_user'] }}"
+    api_password: "{{ hostvars['localhost']['api_password'] }}"
+    api_host: "{{ hostvars['localhost']['api_host'] }}"
+    node: "{{ hostvars['localhost']['node_name'] }}"
+    vmid: "{{ proxmox_vmid }}"
+    usb: '{"usb0":"spice,usb3=1"}'
+    update: true
+  delegate_to: localhost

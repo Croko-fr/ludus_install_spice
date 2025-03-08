@@ -28,7 +28,7 @@
     msg: The file "{{ludus_spice_windows_usbredirect_name }}" was not downloaded.
   when: not file_usb_redirect_after.stat.exists
 
-- name: Install Spice usb redirect plugin as System
+- name: Install Spice usb redirect plugin (domain)
   ansible.windows.win_package:
     path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_usbredirect_name }}"
     product_id: usb_redirect
@@ -37,9 +37,22 @@
   vars:
     ansible_become: true
     ansible_become_method: runas
-    ansible_become_user: "{{ ludus_domain_ad_domain_admin }}"
-    ansible_become_password: "{{ ludus_domain_ad_domain_password }}"
-  when: file_usb_redirect_after.stat.exists
+    ansible_become_user: "{{ ludus_domain_name }}\\{{ ludus_ad_domain_admin }}"
+    ansible_become_password: "{{ ludus_ad_domain_admin_password }}"
+  when: file_usb_redirect_after.stat.exists and ludus_domain_name != "WORKGROUP"
+
+- name: Install Spice usb redirect plugin
+  ansible.windows.win_package:
+    path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_usbredirect_name }}"
+    product_id: usb_redirect
+    arguments: /quiet
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: "{{ ludus_non_domain_admin }}"
+    ansible_become_password: "{{ ludus_non_domain_admin_password }}"
+  when: file_usb_redirect_after.stat.exists and ludus_domain_name == "WORKGROUP"
 
 - name: Add Spice compatible usb device
   community.general.proxmox_kvm:

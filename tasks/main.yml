@@ -1,8 +1,4 @@
 ---
-- name: Message
-  ansible.builtin.debug:
-    msg: Ansible role ludus-install-spice
-
 - name: Gather facts if needed
   ansible.builtin.setup:
   when: ansible_os_family is not defined
@@ -16,6 +12,19 @@
   ansible.builtin.include_tasks:
     file: install_spice_guest_agent.yml
   when: ansible_os_family == "Windows"
+
+- name: Determine if this VM is in a domain
+  ansible.windows.win_shell: |
+    $domainFQDN = (Get-CimInstance -ClassName Win32_ComputerSystem).Domain
+    if ($domainFQDN -eq $null) {
+      $domainFQDN = ""
+    }
+    Write-Output $domainFQDN
+  register: ludus_domain
+
+- name: Saving domain value
+  ansible.builtin.set_fact:
+    ludus_domain_name: "{{ (ludus_domain.stdout | split('\r\n'))[0] | trim }}"
 
 - name: Spice Usb redirect plugin install
   ansible.builtin.include_tasks:

@@ -14,10 +14,6 @@
   register: download_guest_tools
   when: ansible_os_family == "Windows" and not file_guest_tools_before.stat.exists
 
-- name: Debug
-  ansible.builtin.debug:
-    var: download_guest_tools
-
 - name: Check if the "{{ ludus_spice_windows_guest_tools_name }}" executable exists
   win_stat: path="{{ ludus_windows_directory }}\spice\{{ ludus_spice_windows_guest_tools_name }}"
   register: file_guest_tools_after

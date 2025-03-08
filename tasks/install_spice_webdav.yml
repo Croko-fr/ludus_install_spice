@@ -29,6 +29,19 @@
     msg: The file "{{ ludus_spice_windows_foldersharing_name }}" was not downloaded.
   when: not file_webdav_after.stat.exists
 
+- name: Install Spice webdav plugin silently (domain)
+  ansible.windows.win_package:
+    path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_foldersharing_name }}"
+    product_id: foldersharing
+    arguments: /quiet
+    state: present
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: "{{ ludus_domain_name }}\\{{ ludus_ad_domain_admin }}"
+    ansible_become_password: "{{ ludus_ad_domain_admin_password }}"
+  when: file_usb_redirect_after.stat.exists and ludus_domain_name != "WORKGROUP"
+
 - name: Install Spice webdav plugin silently
   ansible.windows.win_package:
     path: "{{ ludus_windows_directory }}\\spice\\{{ ludus_spice_windows_foldersharing_name }}"
@@ -38,6 +51,6 @@
   vars:
     ansible_become: true
     ansible_become_method: runas
-    ansible_become_user: "{{ ludus_domain_ad_domain_admin }}"
-    ansible_become_password: "{{ ludus_domain_ad_domain_password }}"
-  when: file_webdav_after.stat.exists
+    ansible_become_user: "{{ ludus_non_domain_admin }}"
+    ansible_become_password: "{{ ludus_non_domain_admin_password }}"
+  when: file_usb_redirect_after.stat.exists and ludus_domain_name == "WORKGROUP"

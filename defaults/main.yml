@@ -9,9 +9,11 @@ ludus_spice_windows_foldersharing_name: "spice-webdavd-x64-latest.msi"
 ludus_spice_windows_foldersharing_path: "https://www.spice-space.org/download/windows/spice-webdavd/spice-webdavd-x64-latest.msi"
 ludus_spice_windows_foldersharing_hash: "sha256:f278c17fca6b129eb5c9a46b8634af2ecfaf3bca8903eb9a5c7874f0e45f82b9"
 
-ludus_domain: "{{ (ludus | selectattr('vm_name', 'match', inventory_hostname))[0].domain.fqdn.split('.')[0] }}"
-ludus_domain_ad_domain_admin: "{{ ludus_domain }}\\{{ defaults.ad_domain_admin }}"
-ludus_domain_ad_domain_password: "{{ defaults.ad_domain_admin_password }}"
+ludus_ad_domain_admin: "{{ defaults.ad_domain_admin }}"
+ludus_ad_domain_admin_password: "{{ defaults.ad_domain_admin_password }}"
+
+ludus_non_domain_admin: "{{ ansible_user }}"
+ludus_non_domain_admin_password: "{{ ansible_password }}"
 
 spice_usb: false
 spice_share: false

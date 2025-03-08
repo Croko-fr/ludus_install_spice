@@ -20,10 +20,9 @@ After Ansible update :
 
 ## Identified bugs to fix and features to add
 
-- [X] Works only domain joined VM
-- [ ] Fix : make it work on standalone VMs
-- [ ] Feature : add sound support ( Ansible [merge](https://github.com/ansible-collections/community.general/pull/9847) request )
+- [X] Works for standalone and domain joined VM 
 - [ ] Feature : add Linux support
+- [ ] Feature : add sound support ( Ansible [merge](https://github.com/ansible-collections/community.general/pull/9847) request )
 
 ## Requirements
 
